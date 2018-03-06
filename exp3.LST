@@ -1,0 +1,83 @@
+C51 COMPILER V8.16   EXP3                                                                  02/20/2018 15:44:49 PAGE 1   
+
+
+C51 COMPILER V8.16, COMPILATION OF MODULE EXP3
+OBJECT MODULE PLACED IN exp3.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE exp3.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <ADuc842.h>
+   2          #include <stdio.h>
+   3          
+   4          unsigned int i=0;
+   5          unsigned int bufferad = 0;
+   6          unsigned int temp = 0;
+   7          unsigned int duty = 0;
+   8          float Duty_Cycle = 0;
+   9          float valor_ad_conv = 0;
+  10          float valor_ad = 0;
+  11          int controladorP =20;
+  12          
+  13          void configura_serial(void);
+  14          void configura_PWM (void);
+  15          
+  16          void main (void){
+  17   1              PLLCON = 0x80;
+  18   1              ADCCON1 = 0x80;
+  19   1              configura_serial();
+  20   1              configura_PWM();
+  21   1      
+  22   1              while(1){
+  23   2                      for(i=0; i<16; i++){
+  24   3                              ADCCON2 = (ADCCON2 & 0xF0) | 0x04;
+  25   3                              SCONV = 1;
+  26   3                              while (SCONV);
+  27   3                              bufferad = ADCDATAL | ((ADCDATAH & 0x0F) << 8);
+  28   3                              temp = temp + bufferad;
+  29   3                      }
+  30   2                      valor_ad  =(temp/16);
+  31   2                      if(valor_ad>3300 && controladorP>=20)
+  32   2                              controladorP -=20;
+  33   2                      if (valor_ad<2800 && controladorP<=4075)
+  34   2                              controladorP +=20;
+  35   2                      if(valor_ad>=2800 && valor_ad<=3300)
+  36   2                              controladorP = controladorP;
+  37   2                      temp =0;
+  38   2                      valor_ad_conv = valor_ad*0.00122070;
+  39   2                      duty = (controladorP * 65535)/4095;              //valor_ad varia de 0~~4095 
+  40   2                      PWM0H = duty >>8;
+  41   2                      PWM0L = (duty & 0x00FF);
+  42   2      
+  43   2                      Duty_Cycle = (duty*100.0)/65535.0;
+  44   2                      printf("Valor Analogico: %f  Duty Cycle: %d\n", valor_ad, controladorP);
+  45   2              }
+  46   1      }
+  47          
+  48          
+  49          void configura_serial(void){
+  50   1              T3CON = 0x85;
+  51   1              T3FD = 0x2d;
+  52   1              SCON = 0x52;
+  53   1      }
+  54          void configura_PWM(void){
+  55   1              PWMCON = 0x93;
+C51 COMPILER V8.16   EXP3                                                                  02/20/2018 15:44:49 PAGE 2   
+
+  56   1              PWM1H = 0xFF;
+  57   1              PWM1L = 0xFF;
+  58   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    394    ----
+   CONSTANT SIZE    =     37    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     22    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
